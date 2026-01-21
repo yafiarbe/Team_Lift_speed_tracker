@@ -1,75 +1,39 @@
-# Nuxt Minimal Starter
+# Team Lift Speed Tracker
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+Приложение для отслеживания скорости обработки посылок во время смены. PWA с поддержкой офлайн-режима.
 
-## Setup
+## Demo
 
-Make sure to install dependencies:
+**[Открыть приложение](https://yafiarbe.github.io/Team_Lift_speed_tracker/)**
 
-```bash
-# npm
+## Возможности
+
+- Отслеживание прогресса в реальном времени
+- Автоматический расчёт темпа работы
+- Темная/светлая тема
+- PWA - установка на мобильные устройства
+- Локальное сохранение данных
+- Работа офлайн
+
+## Технологии
+
+- [Nuxt 4](https://nuxt.com/) - Vue.js фреймворк
+- [Nuxt UI](https://ui.nuxt.com/) - UI компоненты
+- [Tailwind CSS 4](https://tailwindcss.com/) - стилизация
+- [Vite PWA](https://vite-pwa-org.netlify.app/) - Progressive Web App
+
+## Запуск
+
 npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
-```
-
-## Development Server
-
-Start the development server on `http://localhost:3000`:
-
-```bash
-# npm
 npm run dev
+npm run generate
+npm run deploy
 
-# pnpm
-pnpm dev
+## Установка PWA
 
-# yarn
-yarn dev
+Android: Chrome > Меню > Установить приложение
+iOS: Safari > Поделиться > На экран Домой
 
-# bun
-bun run dev
-```
+## Лицензия
 
-## Production
-
-Build the application for production:
-
-```bash
-# npm
-npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+MIT

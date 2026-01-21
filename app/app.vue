@@ -157,7 +157,7 @@
 					size="xl"
 					block
 					class="main-action-btn min-h-44 sm:min-h-28 lg:min-h-32 text-2xl sm:text-3xl lg:text-4xl font-bold shadow-xl rounded-xl sm:rounded-2xl touch-manipulation"
-					:icon="!isWorking ? 'i-lucide-clock-off' : currentIndex >= times.length ? 'i-lucide-check-circle' : 'i-lucide-package-check'"
+					:icon="!isWorking ? 'i-lucide-clock' : currentIndex >= times.length ? 'i-lucide-check-circle' : 'i-lucide-package-check'"
 					:ui="{ leadingIcon: 'size-8 sm:size-10 lg:size-12' }"
 					:label="!isWorking ? 'Не рабочее время' : currentIndex >= times.length ? 'Норма выполнена' : 'ПОСЫЛКА ГОТОВА'"
 					@click="handleNext"

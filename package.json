@@ -8,7 +8,8 @@
 		"generate": "nuxt generate",
 		"preview": "nuxt preview",
 		"postinstall": "nuxt prepare",
-		"setup:gh-pages": "bash scripts/setup-gh-pages.sh"
+		"predeploy": "npm run generate",
+		"deploy": "gh-pages -d .output/public"
 	},
 	"dependencies": {
 		"@nuxt/eslint": "^1.12.1",
@@ -28,6 +29,7 @@
 		"@tailwindcss/postcss": "^4.1.18",
 		"@types/node": "^25.0.9",
 		"autoprefixer": "^10.4.23",
+		"gh-pages": "^6.3.0",
 		"postcss": "^8.5.6",
 		"tailwindcss": "^4.1.18",
 		"vue-tsc": "^3.2.2"

@@ -19,7 +19,7 @@ export default defineNuxtConfig({
 
 	// App configuration
 	app: {
-		baseURL: process.env.NUXT_APP_BASE_URL || "/",
+		baseURL: "/Team_Lift_speed_tracker/",
 		head: {
 			title: "Team Lift Speed Tracker",
 			meta: [{ charset: "utf-8" }, { name: "viewport", content: "width=device-width, initial-scale=1" }, { name: "description", content: "Track your team's lifting speeds and performance" }],
@@ -43,6 +43,18 @@ export default defineNuxtConfig({
 		typeCheck: false,
 	},
 
+	// Disable font optimization to avoid long filenames on Windows/Git
+	fonts: {
+		defaults: {
+			weights: [400, 500, 600, 700],
+		},
+		assets: {
+			// Use shorter filenames
+			prefix: "/_fonts/",
+		},
+		provider: "none", // Disable automatic font downloading
+	},
+
 	// Nitro configuration for server
 	nitro: {
 		prerender: {
@@ -60,36 +72,36 @@ export default defineNuxtConfig({
 			description: "Отследить скорость обработки посылок во время смены",
 			display: "standalone",
 			orientation: "portrait-primary",
-			scope: "/",
-			start_url: "/",
+			scope: "/Team_Lift_speed_tracker/",
+			start_url: "/Team_Lift_speed_tracker/",
 			background_color: "#ffffff",
 			theme_color: "#000000",
 			categories: ["productivity", "utilities"],
 			screenshots: [
 				{
-					src: "/pwa-192x192.png",
+					src: "/Team_Lift_speed_tracker/pwa-192x192.png",
 					sizes: "192x192",
 					type: "image/png",
 				},
 				{
-					src: "/pwa-512x512.png",
+					src: "/Team_Lift_speed_tracker/pwa-512x512.png",
 					sizes: "512x512",
 					type: "image/png",
 				},
 			],
 			icons: [
 				{
-					src: "/favicon.ico",
+					src: "/Team_Lift_speed_tracker/favicon.ico",
 					sizes: "64x64",
 					type: "image/x-icon",
 				},
 				{
-					src: "/pwa-192x192.png",
+					src: "/Team_Lift_speed_tracker/pwa-192x192.png",
 					sizes: "192x192",
 					type: "image/png",
 				},
 				{
-					src: "/pwa-512x512.png",
+					src: "/Team_Lift_speed_tracker/pwa-512x512.png",
 					sizes: "512x512",
 					type: "image/png",
 				},
