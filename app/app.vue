@@ -1,11 +1,12 @@
 <template>
 	<UApp>
-		<UContainer class="px-4 sm:px-6 py-4 sm:py-8 min-h-screen">
+		<UContainer class="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 min-h-screen max-w-6xl mx-auto">
 			<!-- Header with Shift Info -->
-			<header v-if="currentShift" class="mb-4 sm:mb-8">
+			<header v-if="currentShift" class="mb-4 sm:mb-6 lg:mb-8">
 				<div class="flex flex-col gap-4">
-					<!-- Shift Info Row -->
+					<!-- Row 1: Shift Info + Current Time -->
 					<div class="flex items-center justify-between">
+						<!-- Left: Shift Info -->
 						<div class="flex items-center gap-3 sm:gap-4">
 							<div class="text-4xl sm:text-5xl" role="img" :aria-label="currentShift.name">{{ currentShift.icon }}</div>
 							<div>
@@ -16,200 +17,218 @@
 								</p>
 							</div>
 						</div>
-						<div class="flex items-center gap-3 sm:gap-4">
-							<!-- Current Time -->
-							<div class="text-right">
-								<p class="text-[10px] sm:text-xs text-muted uppercase tracking-wide">Текущее время</p>
-								<p class="text-lg sm:text-xl font-mono font-semibold text-muted">{{ currentTime }}</p>
-							</div>
-							<!-- Desktop Reset Button -->
-							<UButton color="error" variant="soft" icon="i-lucide-rotate-ccw" label="Сбросить" class="hidden sm:flex" @click="showResetConfirm = true" />
+
+						<!-- Right: Current Time -->
+						<div class="text-right">
+							<p class="text-[10px] sm:text-xs text-muted uppercase tracking-wide">Сейчас</p>
+							<p class="text-xl sm:text-2xl font-mono font-bold text-highlighted">{{ currentTime }}</p>
 						</div>
 					</div>
 
-					<!-- Action Buttons Row -->
+					<!-- Row 2: Action Buttons -->
 					<div class="flex gap-2 sm:gap-3">
 						<UButton
 							:disabled="index < 0"
 							color="warning"
 							variant="soft"
 							size="md"
-							class="flex-2/3 min-h-12 touch-manipulation justify-center"
+							class="flex-1 min-h-10 touch-manipulation justify-center"
 							icon="i-lucide-undo-2"
-							label="Шаг назад"
+							label="Назад"
 							@click="handleUndo"
 						/>
-						<!-- Mobile Reset Button -->
 						<UButton
 							color="error"
 							variant="soft"
 							size="md"
+							class="flex-1 min-h-10 touch-manipulation justify-center"
 							icon="i-lucide-rotate-ccw"
-							class="sm:hidden min-h-12 touch-manipulation flex-1/3 justify-center"
-							label="Сбросить"
+							label="Сброс"
 							@click="showResetConfirm = true"
 						/>
 					</div>
 				</div>
 			</header>
 
-			<!-- Main Content Grid -->
-			<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-				<!-- Left Column: Main Package Display -->
-				<div class="lg:col-span-2 space-y-4 sm:space-y-6">
-					<!-- Current Package Card - Compact -->
-					<UCard v-if="currentIndex < times.length" :ui="{ body: 'p-0' }">
-						<div class="flex sm:flex-row items-center gap-4 p-4 sm:p-6">
-							<!-- Package Number -->
-							<div class="text-center sm:text-left">
-								<p class="text-[10px] sm:text-xs font-medium text-muted uppercase tracking-widest mb-1">Посылка</p>
-								<div class="text-3xl sm:text-4xl font-bold text-highlighted">#{{ currentIndex + 1 }}</div>
-							</div>
-
-							<!-- Time Display -->
-							<div class="flex-1 text-center">
-								<p class="text-[10px] sm:text-xs font-medium text-muted uppercase tracking-widest mb-1">Время</p>
-								<span
-									class="text-5xl sm:text-6xl font-black font-mono time-display"
-									:class="isOnSchedule ? 'gradient-text bg-linear-to-r from-primary-500 to-secondary-500' : 'text-error-500 animate-pulse-warning'"
-								>
-									{{ times[currentIndex] }}
-								</span>
-							</div>
+			<!-- Desktop: Stats Bar -->
+			<div class="hidden lg:grid grid-cols-4 gap-4 mb-6">
+				<!-- Time Remaining -->
+				<UCard :ui="{ body: 'p-4' }">
+					<div class="flex items-center gap-3">
+						<div class="p-2 bg-primary-50 dark:bg-primary-950/50 rounded-lg">
+							<UIcon name="i-lucide-timer" class="w-5 h-5 text-primary-500" />
 						</div>
-					</UCard>
-
-					<!-- Completion Card -->
-					<UCard v-else :ui="{ body: 'p-0' }">
-						<div class="bg-linear-to-br from-success-50 to-success-100 dark:from-success-950/50 dark:to-success-900/30 p-6 sm:p-8 text-center">
-							<div class="text-5xl sm:text-6xl mb-3 sm:mb-4" role="img" aria-label="Celebration">🎉</div>
-							<h2 class="text-xl sm:text-2xl font-bold text-highlighted mb-1 sm:mb-2">Отлично!</h2>
-							<p class="text-base sm:text-lg text-muted">Все {{ total }} посылок обработаны</p>
+						<div>
+							<p class="text-xs text-muted uppercase tracking-wide">До конца</p>
+							<p class="text-lg font-bold text-highlighted">{{ timeRemaining }}</p>
 						</div>
-					</UCard>
+					</div>
+				</UCard>
 
-					<!-- Main Action Button - Large for glove use -->
-					<UButton
-						:disabled="currentIndex >= times.length"
-						:color="currentIndex >= times.length ? 'neutral' : 'success'"
-						size="xl"
-						block
-						class="main-action-btn min-h-52 sm:min-h-32 lg:min-h-40 text-2xl sm:text-3xl lg:text-4xl font-bold shadow-xl rounded-xl sm:rounded-2xl touch-manipulation"
-						:icon="currentIndex >= times.length ? 'i-lucide-check-circle' : 'i-lucide-package-check'"
-						:ui="{ leadingIcon: 'size-8 sm:size-10 lg:size-12' }"
-						:label="currentIndex >= times.length ? 'Норма выполнена' : 'ПОСЫЛКА ГОТОВА'"
-						@click="handleNext"
-					/>
-
-					<!-- Progress Card -->
-					<UCard>
-						<template #header>
-							<div class="flex items-center justify-between">
-								<div class="flex items-center gap-2">
-									<UIcon name="i-lucide-trending-up" class="w-4 h-4 sm:w-5 sm:h-5 text-primary-500" />
-									<h3 class="text-sm sm:text-base font-semibold text-highlighted">Прогресс смены</h3>
-								</div>
-								<UBadge :color="progress >= 100 ? 'success' : 'primary'" variant="soft" size="md"> {{ progress }}% </UBadge>
-							</div>
-						</template>
-
-						<div class="space-y-3 sm:space-y-4">
-							<UProgress :model-value="progress" :color="progress >= 100 ? 'success' : 'primary'" size="lg" />
-
-							<div class="flex justify-between text-xs sm:text-sm">
-								<span class="text-muted"
-									>Обработано: <strong class="text-highlighted">{{ scanned }}</strong></span
-								>
-								<span class="text-muted"
-									>Осталось: <strong class="text-highlighted">{{ total - scanned }}</strong></span
-								>
-							</div>
+				<!-- Break Time -->
+				<UCard :ui="{ body: 'p-4' }">
+					<div class="flex items-center gap-3">
+						<div class="p-2 bg-warning-50 dark:bg-warning-950/50 rounded-lg">
+							<UIcon name="i-lucide-coffee" class="w-5 h-5 text-warning-500" />
 						</div>
-					</UCard>
-				</div>
+						<div>
+							<p class="text-xs text-muted uppercase tracking-wide">Перерыв</p>
+							<p v-if="currentShift" class="text-lg font-bold text-highlighted">{{ currentShift.breakStart }}–{{ currentShift.breakEnd }}</p>
+						</div>
+					</div>
+				</UCard>
 
-				<!-- Right Column: Stats & Info -->
-				<div class="space-y-4 sm:space-y-6">
-					<!-- Stats Cards -->
-					<div class="grid grid-cols-2 lg:grid-cols-1 gap-3 sm:gap-4">
-						<!-- Time Remaining -->
-						<UCard class="stat-card">
-							<div class="flex items-start justify-between gap-2">
-								<div class="min-w-0">
-									<p class="text-[10px] sm:text-xs font-medium text-muted uppercase tracking-wide mb-1">До конца смены</p>
-									<p class="text-lg sm:text-2xl font-bold text-highlighted truncate">{{ timeRemaining }}</p>
-								</div>
-								<div class="p-1.5 sm:p-2 bg-primary-50 dark:bg-primary-950/50 rounded-lg shrink-0">
-									<UIcon name="i-lucide-timer" class="w-5 h-5 sm:w-6 sm:h-6 text-primary-500" />
-								</div>
-							</div>
-						</UCard>
+				<!-- Pace -->
+				<UCard :ui="{ body: 'p-4' }">
+					<div class="flex items-center gap-3">
+						<div class="p-2 rounded-lg" :class="isOnSchedule ? 'bg-success-50 dark:bg-success-950/50' : 'bg-warning-50 dark:bg-warning-950/50'">
+							<UIcon name="i-lucide-zap" class="w-5 h-5" :class="isOnSchedule ? 'text-success-500' : 'text-warning-500'" />
+						</div>
+						<div>
+							<p class="text-xs text-muted uppercase tracking-wide">Темп</p>
+							<p class="text-lg font-bold" :class="isOnSchedule ? 'text-success-600 dark:text-success-400' : 'text-warning-600 dark:text-warning-400'">{{ paceDisplay }}x</p>
+						</div>
+					</div>
+				</UCard>
 
-						<!-- Break Time -->
-						<UCard class="stat-card">
-							<div class="flex items-start justify-between gap-2">
-								<div class="min-w-0">
-									<p class="text-[10px] sm:text-xs font-medium text-muted uppercase tracking-wide mb-1">Перерыв</p>
-									<p v-if="currentShift" class="text-base sm:text-xl font-bold text-highlighted">{{ currentShift.breakStart }}–{{ currentShift.breakEnd }}</p>
-									<UBadge v-if="isBreak" color="success" variant="soft" size="sm" class="mt-1 sm:mt-2">
-										<UIcon name="i-lucide-utensils" class="w-3 h-3 mr-1" />
-										Перерыв
-									</UBadge>
-								</div>
-								<div class="p-1.5 sm:p-2 bg-warning-50 dark:bg-warning-950/50 rounded-lg shrink-0">
-									<UIcon name="i-lucide-coffee" class="w-5 h-5 sm:w-6 sm:h-6 text-warning-500" />
-								</div>
-							</div>
-						</UCard>
+				<!-- Status -->
+				<UCard :ui="{ body: 'p-4' }">
+					<div class="flex items-center gap-3">
+						<div class="p-2 rounded-lg" :class="isOnSchedule ? 'bg-success-50 dark:bg-success-950/50' : 'bg-error-50 dark:bg-error-950/50'">
+							<UIcon :name="isOnSchedule ? 'i-lucide-check-circle-2' : 'i-lucide-alert-circle'" class="w-5 h-5" :class="isOnSchedule ? 'text-success-500' : 'text-error-500'" />
+						</div>
+						<div>
+							<p class="text-xs text-muted uppercase tracking-wide">Статус</p>
+							<p class="text-lg font-bold" :class="isOnSchedule ? 'text-success-600 dark:text-success-400' : 'text-error-600 dark:text-error-400'">
+								{{ isOnSchedule ? "В графике" : "Отставание" }}
+							</p>
+						</div>
+					</div>
+				</UCard>
+			</div>
 
-						<!-- Pace -->
-						<UCard class="stat-card">
-							<div class="flex items-start justify-between gap-2">
-								<div class="min-w-0">
-									<p class="text-[10px] sm:text-xs font-medium text-muted uppercase tracking-wide mb-1">Темп работы</p>
-									<p class="text-lg sm:text-2xl font-bold" :class="isOnSchedule ? 'text-success-600 dark:text-success-400' : 'text-warning-600 dark:text-warning-400'">
-										{{ paceDisplay }}x
-									</p>
-								</div>
-								<div class="p-1.5 sm:p-2 rounded-lg shrink-0" :class="isOnSchedule ? 'bg-success-50 dark:bg-success-950/50' : 'bg-warning-50 dark:bg-warning-950/50'">
-									<UIcon name="i-lucide-zap" class="w-5 h-5 sm:w-6 sm:h-6" :class="isOnSchedule ? 'text-success-500' : 'text-warning-500'" />
-								</div>
-							</div>
-						</UCard>
+			<!-- Main Content -->
+			<div class="space-y-4 sm:space-y-5">
+				<!-- Current Package Card -->
+				<UCard v-if="currentIndex < times.length" :ui="{ body: 'p-0' }">
+					<div class="flex items-center justify-center gap-6 sm:gap-10 lg:gap-16 p-5 sm:p-6 lg:p-8">
+						<!-- Package Number -->
+						<div class="text-center">
+							<p class="text-[10px] sm:text-xs font-medium text-muted uppercase tracking-widest mb-1">Посылка</p>
+							<div class="text-4xl sm:text-5xl lg:text-6xl font-bold text-highlighted">#{{ currentIndex + 1 }}</div>
+						</div>
 
-						<!-- Status -->
-						<UCard class="stat-card">
-							<div class="flex items-start justify-between gap-2">
-								<div class="min-w-0">
-									<p class="text-[10px] sm:text-xs font-medium text-muted uppercase tracking-wide mb-1">Статус</p>
-									<p class="text-sm sm:text-lg font-bold" :class="isOnSchedule ? 'text-success-600 dark:text-success-400' : 'text-error-600 dark:text-error-400'">
-										{{ isOnSchedule ? "В графике" : "Отставание" }}
-									</p>
-								</div>
-								<div class="p-1.5 sm:p-2 rounded-lg shrink-0" :class="isOnSchedule ? 'bg-success-50 dark:bg-success-950/50' : 'bg-error-50 dark:bg-error-950/50'">
-									<UIcon
-										:name="isOnSchedule ? 'i-lucide-check-circle-2' : 'i-lucide-alert-circle'"
-										class="w-5 h-5 sm:w-6 sm:h-6"
-										:class="isOnSchedule ? 'text-success-500' : 'text-error-500'"
-									/>
-								</div>
-							</div>
-						</UCard>
+						<!-- Divider -->
+						<div class="hidden sm:block w-px h-16 bg-muted/30" />
+						<!-- Time Display -->
+						<div class="text-center">
+							<p class="text-[10px] sm:text-xs font-medium text-muted uppercase tracking-widest mb-1">Крайнее время</p>
+							<span
+								class="text-5xl sm:text-6xl lg:text-7xl font-black font-mono time-display"
+								:class="isOnSchedule ? 'gradient-text bg-linear-to-r from-primary-500 to-secondary-500' : 'text-error-500 animate-pulse-warning'"
+							>
+								{{ times[currentIndex] }}
+							</span>
+						</div>
+					</div>
+				</UCard>
+
+				<!-- Completion Card -->
+				<UCard v-else :ui="{ body: 'p-0' }">
+					<div class="bg-linear-to-br from-success-50 to-success-100 dark:from-success-950/50 dark:to-success-900/30 p-6 sm:p-8 lg:p-10 text-center">
+						<div class="text-5xl sm:text-6xl lg:text-7xl mb-3 sm:mb-4" role="img" aria-label="Celebration">🎉</div>
+						<h2 class="text-xl sm:text-2xl lg:text-3xl font-bold text-highlighted mb-1 sm:mb-2">Отлично!</h2>
+						<p class="text-base sm:text-lg text-muted">Все {{ total }} посылок обработаны</p>
+					</div>
+				</UCard>
+
+				<!-- Main Action Button -->
+				<UButton
+					:disabled="!isWorking || currentIndex >= times.length"
+					:color="!isWorking ? 'neutral' : currentIndex >= times.length ? 'neutral' : 'success'"
+					size="xl"
+					block
+					class="main-action-btn min-h-44 sm:min-h-28 lg:min-h-32 text-2xl sm:text-3xl lg:text-4xl font-bold shadow-xl rounded-xl sm:rounded-2xl touch-manipulation"
+					:icon="!isWorking ? 'i-lucide-clock-off' : currentIndex >= times.length ? 'i-lucide-check-circle' : 'i-lucide-package-check'"
+					:ui="{ leadingIcon: 'size-8 sm:size-10 lg:size-12' }"
+					:label="!isWorking ? 'Не рабочее время' : currentIndex >= times.length ? 'Норма выполнена' : 'ПОСЫЛКА ГОТОВА'"
+					@click="handleNext"
+				/>
+
+				<!-- Progress Card -->
+				<UCard :ui="{ body: 'p-4 sm:p-5' }">
+					<div class="flex items-center justify-between mb-3">
+						<div class="flex items-center gap-2">
+							<UIcon name="i-lucide-trending-up" class="w-4 h-4 sm:w-5 sm:h-5 text-primary-500" />
+							<h3 class="text-sm sm:text-base font-semibold text-highlighted">Прогресс</h3>
+						</div>
+						<UBadge :color="progress >= 100 ? 'success' : 'primary'" variant="soft" size="md"> {{ progress }}% </UBadge>
 					</div>
 
-					<!-- Upcoming Packages - Hidden on mobile for cleaner UI -->
-					<UCard v-if="remaining.length > 0 && remaining.length <= 15" class="hidden sm:block">
-						<template #header>
-							<div class="flex items-center gap-2">
-								<UIcon name="i-lucide-list" class="w-4 h-4 sm:w-5 sm:h-5 text-muted" />
-								<h3 class="text-sm sm:text-base font-semibold text-highlighted">Следующие посылки</h3>
-							</div>
-						</template>
+					<UProgress :model-value="progress" :color="progress >= 100 ? 'success' : 'primary'" size="lg" class="mb-3" />
 
-						<div class="space-y-2">
-							<div v-for="(time, i) in remaining.slice(0, 5)" :key="i" class="flex items-center justify-between p-2 sm:p-3 bg-muted/50 rounded-lg">
-								<span class="text-xs sm:text-sm font-medium text-muted">#{{ currentIndex + 2 + i }}</span>
-								<span class="text-sm sm:text-base font-mono font-semibold text-highlighted time-display">{{ time }}</span>
+					<div class="flex justify-between text-xs sm:text-sm">
+						<span class="text-muted"
+							>Обработано: <strong class="text-highlighted">{{ scanned }}</strong></span
+						>
+						<span class="text-muted"
+							>Осталось: <strong class="text-highlighted">{{ total - scanned }}</strong></span
+						>
+					</div>
+				</UCard>
+
+				<!-- Mobile Stats Cards -->
+				<div class="grid grid-cols-2 gap-3 lg:hidden">
+					<!-- Time Remaining -->
+					<UCard :ui="{ body: 'p-3' }">
+						<div class="flex items-center gap-2">
+							<div class="p-1.5 bg-primary-50 dark:bg-primary-950/50 rounded-lg shrink-0">
+								<UIcon name="i-lucide-timer" class="w-4 h-4 text-primary-500" />
+							</div>
+							<div class="min-w-0">
+								<p class="text-[10px] text-muted uppercase">До конца</p>
+								<p class="text-sm font-bold text-highlighted truncate">{{ timeRemaining }}</p>
+							</div>
+						</div>
+					</UCard>
+
+					<!-- Pace -->
+					<UCard :ui="{ body: 'p-3' }">
+						<div class="flex items-center gap-2">
+							<div class="p-1.5 rounded-lg shrink-0" :class="isOnSchedule ? 'bg-success-50 dark:bg-success-950/50' : 'bg-warning-50 dark:bg-warning-950/50'">
+								<UIcon name="i-lucide-zap" class="w-4 h-4" :class="isOnSchedule ? 'text-success-500' : 'text-warning-500'" />
+							</div>
+							<div class="min-w-0">
+								<p class="text-[10px] text-muted uppercase">Темп</p>
+								<p class="text-sm font-bold" :class="isOnSchedule ? 'text-success-600' : 'text-warning-600'">{{ paceDisplay }}x</p>
+							</div>
+						</div>
+					</UCard>
+
+					<!-- Break -->
+					<UCard :ui="{ body: 'p-3' }">
+						<div class="flex items-center gap-2">
+							<div class="p-1.5 bg-warning-50 dark:bg-warning-950/50 rounded-lg shrink-0">
+								<UIcon name="i-lucide-coffee" class="w-4 h-4 text-warning-500" />
+							</div>
+							<div class="min-w-0">
+								<p class="text-[10px] text-muted uppercase">Перерыв</p>
+								<p v-if="currentShift" class="text-sm font-bold text-highlighted">{{ currentShift.breakStart }}–{{ currentShift.breakEnd }}</p>
+							</div>
+						</div>
+					</UCard>
+
+					<!-- Status -->
+					<UCard :ui="{ body: 'p-3' }">
+						<div class="flex items-center gap-2">
+							<div class="p-1.5 rounded-lg shrink-0" :class="isOnSchedule ? 'bg-success-50 dark:bg-success-950/50' : 'bg-error-50 dark:bg-error-950/50'">
+								<UIcon :name="isOnSchedule ? 'i-lucide-check-circle-2' : 'i-lucide-alert-circle'" class="w-4 h-4" :class="isOnSchedule ? 'text-success-500' : 'text-error-500'" />
+							</div>
+							<div class="min-w-0">
+								<p class="text-[10px] text-muted uppercase">Статус</p>
+								<p class="text-sm font-bold" :class="isOnSchedule ? 'text-success-600' : 'text-error-600'">
+									{{ isOnSchedule ? "ОК" : "Опоздание" }}
+								</p>
 							</div>
 						</div>
 					</UCard>
@@ -367,6 +386,26 @@ const isBreakTime = (shift: Shift): boolean => {
 	return currentMinutes >= breakStartMinutes && currentMinutes < breakEndMinutes;
 };
 
+const isWorkingTime = (): boolean => {
+	const now = new Date();
+	const hours = now.getHours();
+	const minutes = now.getMinutes();
+	const currentMinutes = hours * 60 + minutes;
+
+	// Night shift: 17:30 - 04:00
+	if (currentMinutes >= 17 * 60 + 30 || currentMinutes < 4 * 60) {
+		return true;
+	}
+
+	// Day shift: 06:00 - 16:30
+	if (currentMinutes >= 6 * 60 && currentMinutes < 16 * 60 + 30) {
+		return true;
+	}
+
+	// Outside working hours
+	return false;
+};
+
 // Reactive State
 const currentShiftType = ref<"day" | "night">("night");
 const index = ref(-1);
@@ -375,6 +414,7 @@ const timeRemaining = ref("");
 const currentTime = ref("");
 const nowMinutes = ref(0); // Реактивное текущее время в минутах для пересчёта
 const isBreak = ref(false);
+const isWorking = ref(true); // Находимся ли в рабочее время
 
 // Timers
 let updateInterval: ReturnType<typeof setInterval> | null = null;
@@ -385,7 +425,6 @@ const times = computed(() => currentShift.value?.slots ?? []);
 const scanned = computed(() => index.value + 1);
 const total = computed(() => times.value.length);
 const currentIndex = computed(() => index.value + 1);
-const remaining = computed(() => times.value.slice(currentIndex.value + 1));
 const progress = computed(() => (total.value > 0 ? Math.round((scanned.value / total.value) * 100) : 0));
 
 const expectedAtThisTime = computed(() => {
@@ -475,6 +514,7 @@ const updateTime = () => {
 	const minutes = now.getMinutes();
 	currentTime.value = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
 	nowMinutes.value = hours * 60 + minutes; // Обновляем реактивное время
+	isWorking.value = isWorkingTime(); // Обновляем статус рабочего времени
 
 	const shift = currentShift.value;
 	if (shift) {
