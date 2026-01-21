@@ -7,7 +7,7 @@ export default defineNuxtConfig({
 	ssr: false,
 
 	// Modules
-	modules: ["@nuxt/eslint", "@nuxt/hints", "@nuxt/image", "@nuxt/ui", "@pinia/nuxt"],
+	modules: ["@nuxt/eslint", "@nuxt/hints", "@nuxt/image", "@nuxt/ui", "@pinia/nuxt", "@vite-pwa/nuxt"],
 
 	// CSS
 	css: ["~/assets/css/main.css"],
@@ -48,6 +48,73 @@ export default defineNuxtConfig({
 			crawlLinks: false,
 			routes: ["/sitemap.xml", "/robots.txt"],
 			ignore: ["/admin"],
+		},
+	},
+
+	// PWA Configuration
+	pwa: {
+		manifest: {
+			name: "Team Lift Speed Tracker",
+			short_name: "Lift Tracker",
+			description: "Отследить скорость обработки посылок во время смены",
+			display: "standalone",
+			orientation: "portrait-primary",
+			scope: "/",
+			start_url: "/",
+			background_color: "#ffffff",
+			theme_color: "#000000",
+			categories: ["productivity", "utilities"],
+			screenshots: [
+				{
+					src: "/pwa-192x192.png",
+					sizes: "192x192",
+					type: "image/png",
+					purpose: "any",
+				},
+				{
+					src: "/pwa-512x512.png",
+					sizes: "512x512",
+					type: "image/png",
+					purpose: "any",
+				},
+			],
+			icons: [
+				{
+					src: "/favicon.ico",
+					sizes: "64x64",
+					type: "image/x-icon",
+				},
+				{
+					src: "/pwa-192x192.png",
+					sizes: "192x192",
+					type: "image/png",
+				},
+				{
+					src: "/pwa-512x512.png",
+					sizes: "512x512",
+					type: "image/png",
+				},
+			],
+		},
+		workbox: {
+			runtimeCaching: [
+				{
+					urlPattern: "^https://.*",
+					handler: "NetworkFirst",
+					options: {
+						cacheName: "api-cache",
+						expiration: {
+							maxEntries: 50,
+							maxAgeSeconds: 300,
+						},
+					},
+				},
+			],
+		},
+		registerType: "autoUpdate",
+		devOptions: {
+			enabled: true,
+			suppressWarnings: true,
 		},
 	},
 });

@@ -1,5 +1,13 @@
 <template>
 	<UApp>
+		<Head>
+			<Meta name="theme-color" content="#000000" />
+			<Meta name="mobile-web-app-capable" content="yes" />
+			<Meta name="apple-mobile-web-app-capable" content="yes" />
+			<Meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+			<Meta name="apple-mobile-web-app-title" content="Lift Tracker" />
+			<Link rel="apple-touch-icon" href="/pwa-192x192.png" />
+		</Head>
 		<UContainer class="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 min-h-screen max-w-6xl mx-auto">
 			<!-- Header with Shift Info -->
 			<header v-if="currentShift" class="mb-4 sm:mb-6 lg:mb-8">
