@@ -19,6 +19,7 @@ export default defineNuxtConfig({
 
 	// App configuration
 	app: {
+		baseURL: process.env.NUXT_APP_BASE_URL || "/",
 		head: {
 			title: "Team Lift Speed Tracker",
 			meta: [{ charset: "utf-8" }, { name: "viewport", content: "width=device-width, initial-scale=1" }, { name: "description", content: "Track your team's lifting speeds and performance" }],
@@ -69,13 +70,11 @@ export default defineNuxtConfig({
 					src: "/pwa-192x192.png",
 					sizes: "192x192",
 					type: "image/png",
-					purpose: "any",
 				},
 				{
 					src: "/pwa-512x512.png",
 					sizes: "512x512",
 					type: "image/png",
-					purpose: "any",
 				},
 			],
 			icons: [
