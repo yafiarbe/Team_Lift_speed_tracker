@@ -23,7 +23,10 @@ export default defineNuxtConfig({
 		head: {
 			title: "Team Lift Speed Tracker",
 			meta: [{ charset: "utf-8" }, { name: "viewport", content: "width=device-width, initial-scale=1" }, { name: "description", content: "Track your team's lifting speeds and performance" }],
-			link: [{ rel: "icon", type: "image/x-icon", href: "/favicon.ico" }],
+			link: [
+				{ rel: "icon", type: "image/x-icon", href: "/Team_Lift_speed_tracker/favicon.ico" },
+				{ rel: "manifest", href: "/Team_Lift_speed_tracker/manifest.webmanifest" },
+			],
 		},
 	},
 
@@ -68,7 +71,7 @@ export default defineNuxtConfig({
 	pwa: {
 		manifest: {
 			name: "Team Lift Speed Tracker",
-			short_name: "Lift Tracker",
+			short_name: "TL Speed Tracker",
 			description: "Отследить скорость обработки посылок во время смены",
 			display: "standalone",
 			orientation: "portrait-primary",
@@ -108,6 +111,8 @@ export default defineNuxtConfig({
 			],
 		},
 		workbox: {
+			navigateFallback: "/Team_Lift_speed_tracker/",
+			navigateFallbackDenylist: [/^\/api/],
 			runtimeCaching: [
 				{
 					urlPattern: "^https://.*",

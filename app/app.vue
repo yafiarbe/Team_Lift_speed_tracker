@@ -54,6 +54,17 @@
 							label="Сброс"
 							@click="showResetConfirm = true"
 						/>
+						<UButton color="neutral" variant="soft" size="md" class="min-h-10 touch-manipulation justify-center" icon="i-lucide-settings" @click="showSettings = true" />
+						<UButton
+							v-if="canInstall"
+							color="primary"
+							variant="soft"
+							size="md"
+							class="flex-1 min-h-10 touch-manipulation justify-center"
+							icon="i-lucide-download"
+							label="Установить"
+							@click="handleInstallClick"
+						/>
 					</div>
 				</div>
 			</header>
@@ -67,7 +78,7 @@
 							<UIcon name="i-lucide-timer" class="w-5 h-5 text-primary-500" />
 						</div>
 						<div>
-							<p class="text-xs text-muted uppercase tracking-wide">До конца</p>
+							<p class="text-xs text-muted uppercase tracking-wide">До конца смены</p>
 							<p class="text-lg font-bold text-highlighted">{{ timeRemaining }}</p>
 						</div>
 					</div>
@@ -80,7 +91,7 @@
 							<UIcon name="i-lucide-coffee" class="w-5 h-5 text-warning-500" />
 						</div>
 						<div>
-							<p class="text-xs text-muted uppercase tracking-wide">Перерыв</p>
+							<p class="text-xs text-muted uppercase tracking-wide">Обед</p>
 							<p v-if="currentShift" class="text-lg font-bold text-highlighted">{{ currentShift.breakStart }}–{{ currentShift.breakEnd }}</p>
 						</div>
 					</div>
@@ -194,7 +205,7 @@
 								<UIcon name="i-lucide-timer" class="w-4 h-4 text-primary-500" />
 							</div>
 							<div class="min-w-0">
-								<p class="text-[10px] text-muted uppercase">До конца</p>
+								<p class="text-[10px] text-muted uppercase">До конца смены</p>
 								<p class="text-sm font-bold text-highlighted truncate">{{ timeRemaining }}</p>
 							</div>
 						</div>
@@ -220,7 +231,7 @@
 								<UIcon name="i-lucide-coffee" class="w-4 h-4 text-warning-500" />
 							</div>
 							<div class="min-w-0">
-								<p class="text-[10px] text-muted uppercase">Перерыв</p>
+								<p class="text-[10px] text-muted uppercase">Обед</p>
 								<p v-if="currentShift" class="text-sm font-bold text-highlighted">{{ currentShift.breakStart }}–{{ currentShift.breakEnd }}</p>
 							</div>
 						</div>
@@ -235,7 +246,7 @@
 							<div class="min-w-0">
 								<p class="text-[10px] text-muted uppercase">Статус</p>
 								<p class="text-sm font-bold" :class="isOnSchedule ? 'text-success-600' : 'text-error-600'">
-									{{ isOnSchedule ? "ОК" : "Опоздание" }}
+									{{ isOnSchedule ? "В графике" : "Опоздание" }}
 								</p>
 							</div>
 						</div>
@@ -248,6 +259,71 @@
 				<template #footer>
 					<UButton color="neutral" variant="ghost" label="Отмена" @click="showResetConfirm = false" />
 					<UButton color="error" label="Сбросить" icon="i-lucide-trash-2" @click="handleReset" />
+				</template>
+			</UModal>
+
+			<!-- PWA Install Prompt -->
+			<UModal v-model:open="showInstallPrompt" title="Установить приложение?" :ui="{ footer: 'justify-end' }">
+				<template #body>
+					<div class="flex items-center gap-4 p-4">
+						<div class="p-3 bg-primary-100 dark:bg-primary-900/50 rounded-xl">
+							<UIcon name="i-lucide-download" class="w-10 h-10 text-primary-500" />
+						</div>
+						<div>
+							<p class="text-sm text-muted">Установите Lift Tracker на главный экран для быстрого доступа и работы офлайн.</p>
+						</div>
+					</div>
+				</template>
+				<template #footer>
+					<UButton color="neutral" variant="ghost" label="Позже" @click="dismissInstallPrompt" />
+					<UButton color="primary" label="Установить" icon="i-lucide-download" @click="handleInstallClick" />
+				</template>
+			</UModal>
+
+			<!-- Settings Modal -->
+			<UModal v-model:open="showSettings" title="Настройки" :ui="{ footer: 'justify-end' }">
+				<template #body>
+					<div class="p-4 space-y-6">
+						<!-- Количество посылок -->
+						<div>
+							<label class="block text-sm font-medium mb-2">Количество посылок за смену</label>
+							<UInput v-model="settingsForm.maxPackages" type="number" min="10" max="200" placeholder="100" />
+						</div>
+
+						<!-- Дневная смена -->
+						<div class="border-t pt-4">
+							<h3 class="font-medium mb-3 flex items-center gap-2"><span>☀️</span> Дневная смена</h3>
+							<div class="grid grid-cols-2 gap-3">
+								<div>
+									<label class="block text-xs text-muted mb-1">Начало перерыва</label>
+									<UInput v-model="settingsForm.dayBreakStart" type="time" />
+								</div>
+								<div>
+									<label class="block text-xs text-muted mb-1">Конец перерыва</label>
+									<UInput v-model="settingsForm.dayBreakEnd" type="time" />
+								</div>
+							</div>
+						</div>
+
+						<!-- Ночная смена -->
+						<div class="border-t pt-4">
+							<h3 class="font-medium mb-3 flex items-center gap-2"><span>🌙</span> Ночная смена</h3>
+							<div class="grid grid-cols-2 gap-3">
+								<div>
+									<label class="block text-xs text-muted mb-1">Начало перерыва</label>
+									<UInput v-model="settingsForm.nightBreakStart" type="time" />
+								</div>
+								<div>
+									<label class="block text-xs text-muted mb-1">Конец перерыва</label>
+									<UInput v-model="settingsForm.nightBreakEnd" type="time" />
+								</div>
+							</div>
+						</div>
+					</div>
+				</template>
+				<template #footer>
+					<UButton color="neutral" variant="ghost" label="Отмена" @click="showSettings = false" />
+					<UButton color="primary" label="Сохранить" icon="i-lucide-check" @click="saveSettings" />
 				</template>
 			</UModal>
 		</UContainer>
@@ -272,10 +348,27 @@ interface Shift {
 
 // Constants
 const INTERVAL_MINUTES = 6;
-const MAX_PACKAGES = 100;
+const DEFAULT_MAX_PACKAGES = 100;
+
+// Settings interface
+interface UserSettings {
+	maxPackages: number;
+	dayBreakStart: string;
+	dayBreakEnd: string;
+	nightBreakStart: string;
+	nightBreakEnd: string;
+}
+
+const DEFAULT_SETTINGS: UserSettings = {
+	maxPackages: DEFAULT_MAX_PACKAGES,
+	dayBreakStart: "12:00",
+	dayBreakEnd: "12:30",
+	nightBreakStart: "22:15",
+	nightBreakEnd: "22:45",
+};
 
 // Utility Functions
-const generateTimeSlots = (startTime: string, endTime: string, breakStart: string, breakEnd: string, interval = INTERVAL_MINUTES): string[] => {
+const generateTimeSlots = (startTime: string, endTime: string, breakStart: string, breakEnd: string, interval = INTERVAL_MINUTES, maxPackages = DEFAULT_MAX_PACKAGES): string[] => {
 	const slots: string[] = [];
 	const [startH = 0, startM = 0] = startTime.split(":").map(Number);
 	const [endH = 0, endM = 0] = endTime.split(":").map(Number);
@@ -299,33 +392,57 @@ const generateTimeSlots = (startTime: string, endTime: string, breakStart: strin
 		slots.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
 
 		currentMinutes += interval;
-		if (slots.length >= MAX_PACKAGES) break;
+		if (slots.length >= maxPackages) break;
 	}
 
 	return slots;
 };
 
-// Shift Configurations
-const SHIFTS: Record<string, Shift> = {
+// Shift Configurations - теперь вычисляемые на основе настроек
+const createShifts = (settings: UserSettings): Record<string, Shift> => ({
 	night: {
 		name: "Ночная смена",
 		icon: "🌙",
 		start: "17:30",
 		end: "04:00",
-		breakStart: "22:15",
-		breakEnd: "22:45",
-		slots: generateTimeSlots("17:30", "04:00", "22:15", "22:45"),
+		breakStart: settings.nightBreakStart,
+		breakEnd: settings.nightBreakEnd,
+		slots: generateTimeSlots("17:30", "04:00", settings.nightBreakStart, settings.nightBreakEnd, INTERVAL_MINUTES, settings.maxPackages),
 	},
 	day: {
 		name: "Дневная смена",
 		icon: "☀️",
 		start: "06:00",
 		end: "16:30",
-		breakStart: "12:00",
-		breakEnd: "12:30",
-		slots: generateTimeSlots("06:00", "16:30", "12:00", "12:30"),
+		breakStart: settings.dayBreakStart,
+		breakEnd: settings.dayBreakEnd,
+		slots: generateTimeSlots("06:00", "16:30", settings.dayBreakStart, settings.dayBreakEnd, INTERVAL_MINUTES, settings.maxPackages),
 	},
+});
+
+// Загрузка настроек из localStorage
+const loadSettings = (): UserSettings => {
+	if (import.meta.client) {
+		const saved = localStorage.getItem("lift_tracker_settings");
+		if (saved) {
+			try {
+				const parsed = JSON.parse(saved);
+				return {
+					...DEFAULT_SETTINGS,
+					...parsed,
+					maxPackages: Number(parsed.maxPackages) || DEFAULT_MAX_PACKAGES,
+				};
+			} catch {
+				return DEFAULT_SETTINGS;
+			}
+		}
+	}
+	return DEFAULT_SETTINGS;
 };
+
+// Реактивные настройки
+const userSettings = ref<UserSettings>(loadSettings());
+const SHIFTS = computed(() => createShifts(userSettings.value));
 
 const getCurrentShiftType = (): "day" | "night" => {
 	const now = new Date();
@@ -355,7 +472,7 @@ const getTimeRemaining = (shift: Shift): string => {
 	const endDate = new Date(now);
 	endDate.setHours(endH, endM, 0, 0);
 
-	if (shift === SHIFTS.night) {
+	if (shift === SHIFTS.value.night) {
 		if (currentHours < 4 || (currentHours === 4 && currentMinutes === 0)) {
 			endDate.setHours(4, 0, 0, 0);
 		} else if (currentHours >= 17 && currentMinutes >= 30) {
@@ -418,17 +535,27 @@ const isWorkingTime = (): boolean => {
 const currentShiftType = ref<"day" | "night">("night");
 const index = ref(-1);
 const showResetConfirm = ref(false);
+const showSettings = ref(false);
 const timeRemaining = ref("");
 const currentTime = ref("");
 const nowMinutes = ref(0); // Реактивное текущее время в минутах для пересчёта
 const isBreak = ref(false);
 const isWorking = ref(true); // Находимся ли в рабочее время
 
+// Settings form
+const settingsForm = ref<UserSettings>({
+	maxPackages: userSettings.value.maxPackages,
+	dayBreakStart: userSettings.value.dayBreakStart,
+	dayBreakEnd: userSettings.value.dayBreakEnd,
+	nightBreakStart: userSettings.value.nightBreakStart,
+	nightBreakEnd: userSettings.value.nightBreakEnd,
+});
+
 // Timers
 let updateInterval: ReturnType<typeof setInterval> | null = null;
 
 // Computed Properties
-const currentShift = computed(() => SHIFTS[currentShiftType.value] ?? null);
+const currentShift = computed(() => SHIFTS.value[currentShiftType.value] ?? null);
 const times = computed(() => currentShift.value?.slots ?? []);
 const scanned = computed(() => index.value + 1);
 const total = computed(() => times.value.length);
@@ -446,7 +573,7 @@ const expectedAtThisTime = computed(() => {
 
 	// Для ночной смены корректируем время после полуночи
 	let normalizedCurrentMinutes = currentTotalMinutes;
-	if (shift === SHIFTS.night && currentHours < 12) {
+	if (shift === SHIFTS.value.night && currentHours < 12) {
 		normalizedCurrentMinutes = currentTotalMinutes + 24 * 60; // Добавляем 24 часа для сравнения
 	}
 
@@ -456,7 +583,7 @@ const expectedAtThisTime = computed(() => {
 		let slotMinutes = slotH * 60 + slotM;
 
 		// Для ночной смены корректируем время слотов после полуночи
-		if (shift === SHIFTS.night && slotH < 12) {
+		if (shift === SHIFTS.value.night && slotH < 12) {
 			slotMinutes += 24 * 60;
 		}
 
@@ -516,6 +643,33 @@ const handleReset = () => {
 	});
 };
 
+const saveSettings = () => {
+	// Конвертируем maxPackages в число (из input приходит строка)
+	userSettings.value = {
+		...settingsForm.value,
+		maxPackages: Number(settingsForm.value.maxPackages) || DEFAULT_MAX_PACKAGES,
+	};
+
+	if (import.meta.client) {
+		localStorage.setItem("lift_tracker_settings", JSON.stringify(userSettings.value));
+	}
+
+	showSettings.value = false;
+
+	toast.add({
+		title: "Настройки сохранены",
+		description: `Количество посылок: ${userSettings.value.maxPackages}`,
+		icon: "i-lucide-check",
+	});
+};
+
+// Синхронизируем форму при открытии настроек
+watch(showSettings, (isOpen) => {
+	if (isOpen) {
+		settingsForm.value = { ...userSettings.value };
+	}
+});
+
 const updateTime = () => {
 	const now = new Date();
 	const hours = now.getHours();
@@ -562,6 +716,43 @@ watch(index, (newValue) => {
 	showProgressNotification(scannedCount);
 });
 
+// PWA Install Prompt
+interface BeforeInstallPromptEvent extends Event {
+	prompt: () => Promise<void>;
+	userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
+
+const deferredPrompt = ref<BeforeInstallPromptEvent | null>(null);
+const showInstallPrompt = ref(false);
+
+// Показывать кнопку установки только если доступна
+const canInstall = computed(() => deferredPrompt.value !== null);
+
+const handleInstallClick = async () => {
+	if (!deferredPrompt.value) return;
+
+	deferredPrompt.value.prompt();
+	const { outcome } = await deferredPrompt.value.userChoice;
+
+	if (outcome === "accepted") {
+		toast.add({
+			title: "Приложение установлено!",
+			description: "Теперь вы можете открыть его с главного экрана",
+			icon: "i-lucide-check-circle",
+			color: "success",
+		});
+	}
+
+	deferredPrompt.value = null;
+	showInstallPrompt.value = false;
+};
+
+const dismissInstallPrompt = () => {
+	showInstallPrompt.value = false;
+	// Запомним что пользователь отказался (на 7 дней)
+	localStorage.setItem("pwa_install_dismissed", Date.now().toString());
+};
+
 // Lifecycle Hooks
 onMounted(() => {
 	if (import.meta.client) {
@@ -581,6 +772,36 @@ onMounted(() => {
 
 		updateTime();
 		updateInterval = setInterval(updateTime, 60000);
+
+		// PWA Install Prompt listener (только для мобильных устройств)
+		const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+
+		if (isMobile) {
+			window.addEventListener("beforeinstallprompt", (e: Event) => {
+				e.preventDefault();
+				deferredPrompt.value = e as BeforeInstallPromptEvent;
+
+				// Проверяем не отказывался ли пользователь недавно
+				const dismissed = localStorage.getItem("pwa_install_dismissed");
+				if (dismissed) {
+					const dismissedTime = parseInt(dismissed, 10);
+					const sevenDays = 7 * 24 * 60 * 60 * 1000;
+					if (Date.now() - dismissedTime < sevenDays) {
+						return; // Не показываем если отказался менее 7 дней назад
+					}
+				}
+
+				// Показываем prompt через 3 секунды
+				setTimeout(() => {
+					showInstallPrompt.value = true;
+				}, 3000);
+			});
+
+			window.addEventListener("appinstalled", () => {
+				deferredPrompt.value = null;
+				showInstallPrompt.value = false;
+			});
+		}
 	}
 });
 
