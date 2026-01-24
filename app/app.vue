@@ -5,9 +5,10 @@
 			<Meta name="mobile-web-app-capable" content="yes" />
 			<Meta name="apple-mobile-web-app-capable" content="yes" />
 			<Meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-			<Meta name="apple-mobile-web-app-title" content="Lift Tracker" />
+			<Meta name="apple-mobile-web-app-title" content="TSST" />
 			<Link rel="apple-touch-icon" href="/pwa-192x192.png" />
 		</Head>
+
 		<UContainer class="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 min-h-screen max-w-6xl mx-auto">
 			<!-- Header with Shift Info -->
 			<header v-if="currentShift" class="mb-4 sm:mb-6 lg:mb-8">
@@ -54,7 +55,14 @@
 							label="Сброс"
 							@click="showResetConfirm = true"
 						/>
-						<UButton color="neutral" variant="soft" size="md" class="min-h-10 touch-manipulation justify-center" icon="i-lucide-settings" @click="showSettings = true" />
+						<UButton
+							color="neutral"
+							variant="soft"
+							size="md"
+							class="min-h-10 touch-manipulation justify-center bg-transparent hover:bg-transparent active:bg-transparent active:scale-105"
+							icon="i-lucide-settings"
+							@click="showSettings = true"
+						/>
 						<UButton
 							v-if="canInstall"
 							color="primary"
@@ -139,6 +147,7 @@
 
 						<!-- Divider -->
 						<div class="hidden sm:block w-px h-16 bg-muted/30" />
+
 						<!-- Time Display -->
 						<div class="text-center">
 							<p class="text-[10px] sm:text-xs font-medium text-muted uppercase tracking-widest mb-1">Крайнее время</p>
@@ -329,8 +338,10 @@
 		</UContainer>
 	</UApp>
 </template>
+
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
+import { useHead } from "#imports";
 
 // Composables
 const toast = useToast();
@@ -368,33 +379,44 @@ const DEFAULT_SETTINGS: UserSettings = {
 };
 
 // Utility Functions
-const generateTimeSlots = (startTime: string, endTime: string, breakStart: string, breakEnd: string, interval = INTERVAL_MINUTES, maxPackages = DEFAULT_MAX_PACKAGES): string[] => {
+const generateTimeSlots = (startTime: string, endTime: string, breakStart: string, breakEnd: string, _interval = INTERVAL_MINUTES, maxPackages = DEFAULT_MAX_PACKAGES): string[] => {
 	const slots: string[] = [];
 	const [startH = 0, startM = 0] = startTime.split(":").map(Number);
 	const [endH = 0, endM = 0] = endTime.split(":").map(Number);
 	const [breakStartH = 0, breakStartM = 0] = breakStart.split(":").map(Number);
 	const [breakEndH = 0, breakEndM = 0] = breakEnd.split(":").map(Number);
 
-	// Первая посылка через 6 минут после начала смены
-	let currentMinutes = startH * 60 + startM + interval;
-	const endMinutes = (endH < startH ? endH + 24 : endH) * 60 + endM;
+	// Время в минутах
+	const startMinutes = startH * 60 + startM;
+	let endMinutes = endH * 60 + endM;
+	if (endMinutes <= startMinutes) endMinutes += 24 * 60; // ночная смена через полночь
 	const breakStartMinutes = breakStartH * 60 + breakStartM;
-	const breakEndMinutes = breakEndH * 60 + breakEndM;
+	let breakEndMinutes = breakEndH * 60 + breakEndM;
+	if (breakEndMinutes < breakStartMinutes) breakEndMinutes += 24 * 60;
 
-	while (currentMinutes < endMinutes) {
-		if (currentMinutes >= breakStartMinutes && currentMinutes < breakEndMinutes) {
-			currentMinutes = breakEndMinutes;
-			continue;
+	// Длительность смены без перерыва
+	const workDuration = breakStartMinutes - startMinutes + (endMinutes - breakEndMinutes);
+	if (workDuration <= 0 || maxPackages <= 0) return slots;
+
+	// Интервал между посылками
+	const slotInterval = workDuration / maxPackages;
+
+	for (let i = 0; i < maxPackages; i++) {
+		// Сдвиг: первая посылка через один интервал после старта
+		const minutesFromStart = slotInterval * (i + 1);
+		let slotMinutes;
+		if (minutesFromStart < breakStartMinutes - startMinutes) {
+			// До перерыва
+			slotMinutes = startMinutes + minutesFromStart;
+		} else {
+			// После перерыва
+			slotMinutes = breakEndMinutes + (minutesFromStart - (breakStartMinutes - startMinutes));
 		}
-
-		const h = Math.floor(currentMinutes / 60) % 24;
-		const m = currentMinutes % 60;
+		slotMinutes = Math.round(slotMinutes);
+		const h = Math.floor(slotMinutes / 60) % 24;
+		const m = slotMinutes % 60;
 		slots.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
-
-		currentMinutes += interval;
-		if (slots.length >= maxPackages) break;
 	}
-
 	return slots;
 };
 
@@ -606,9 +628,24 @@ const paceDisplay = computed(() => pace.value.toFixed(1));
 // "В графике" только если обработали ВСЕ посылки, которые должны быть обработаны к этому моменту
 const isOnSchedule = computed(() => scanned.value >= expectedAtThisTime.value);
 
+/**
+ * ✅ ИСПРАВЛЕНИЕ 500 / "Cannot access 'times' before initialization"
+ * useHead делаем реактивным и вызываем ПОСЛЕ объявления times/currentIndex
+ */
+useHead(() => {
+	const time = times.value[currentIndex.value] || "";
+	const status = isOnSchedule.value ? "✅" : "⚠️";
+	return {
+		title: time ? `${status} ${time}` : "TSST",
+	};
+});
+
 // Methods
 const handleNext = () => {
 	if (index.value < times.value.length - 1) {
+		index.value++;
+	} else if (index.value === times.value.length - 1) {
+		// Переход к 100% (последняя посылка)
 		index.value++;
 	}
 };
@@ -629,6 +666,7 @@ const handleUndo = () => {
 const handleReset = () => {
 	index.value = -1;
 	showResetConfirm.value = false;
+	shownMilestones.value = {}; // сбросить прогресс-уведомления
 
 	if (import.meta.client) {
 		localStorage.removeItem(`parcel_progress_${currentShiftType.value}`);
@@ -653,6 +691,11 @@ const saveSettings = () => {
 	if (import.meta.client) {
 		localStorage.setItem("lift_tracker_settings", JSON.stringify(userSettings.value));
 	}
+
+	// Сбросить прогресс и пересчитать смену/слоты
+	index.value = -1;
+	shownMilestones.value = {}; // сбросить прогресс-уведомления
+	updateTime();
 
 	showSettings.value = false;
 
@@ -686,23 +729,47 @@ const updateTime = () => {
 };
 
 // Progress Notifications
-const showProgressNotification = (scannedCount: number) => {
-	const milestones: Record<number, { title: string; icon: string }> = {
-		25: { title: "🎯 25% выполнено!", icon: "i-lucide-target" },
-		50: { title: "🔥 Половина пути!", icon: "i-lucide-flame" },
-		75: { title: "💪 75% выполнено!", icon: "i-lucide-trophy" },
-		100: { title: "🎉 Норма выполнена!", icon: "i-lucide-party-popper" },
-	};
-
-	const milestone = milestones[scannedCount];
-	if (milestone) {
-		toast.clear();
-		toast.add({
-			title: milestone.title,
-			description: `Обработано ${scannedCount} из ${total.value} посылок`,
-			color: "success",
-			icon: milestone.icon,
-		});
+const shownMilestones = ref<{ [key: string]: boolean }>({});
+const showProgressNotification = () => {
+	if (total.value === 0) return;
+	const milestones: Array<{ key: string; title: string; icon: string; check: () => boolean }> = [
+		{
+			key: "25",
+			title: "🎯 25% выполнено!",
+			icon: "i-lucide-target",
+			check: () => scanned.value === Math.ceil(total.value * 0.25),
+		},
+		{
+			key: "50",
+			title: "🔥 Половина пути!",
+			icon: "i-lucide-flame",
+			check: () => scanned.value === Math.ceil(total.value * 0.5),
+		},
+		{
+			key: "75",
+			title: "💪 75% выполнено!",
+			icon: "i-lucide-trophy",
+			check: () => scanned.value === Math.ceil(total.value * 0.75),
+		},
+		{
+			key: "100",
+			title: "🎉 Норма выполнена!",
+			icon: "i-lucide-party-popper",
+			check: () => scanned.value === total.value,
+		},
+	];
+	for (const m of milestones) {
+		if (m.check() && !shownMilestones.value[m.key]) {
+			shownMilestones.value[m.key] = true;
+			toast.clear();
+			toast.add({
+				title: m.title,
+				description: `Обработано ${scanned.value} из ${total.value} посылок`,
+				color: "success",
+				icon: m.icon,
+			});
+			break;
+		}
 	}
 };
 
@@ -712,8 +779,7 @@ watch(index, (newValue) => {
 		localStorage.setItem(`parcel_progress_${currentShiftType.value}`, newValue.toString());
 	}
 
-	const scannedCount = newValue + 1;
-	showProgressNotification(scannedCount);
+	showProgressNotification();
 });
 
 // PWA Install Prompt
@@ -750,7 +816,9 @@ const handleInstallClick = async () => {
 const dismissInstallPrompt = () => {
 	showInstallPrompt.value = false;
 	// Запомним что пользователь отказался (на 7 дней)
-	localStorage.setItem("pwa_install_dismissed", Date.now().toString());
+	if (import.meta.client) {
+		localStorage.setItem("pwa_install_dismissed", Date.now().toString());
+	}
 };
 
 // Lifecycle Hooks
