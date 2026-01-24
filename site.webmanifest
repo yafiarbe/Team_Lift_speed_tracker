@@ -1,41 +1,21 @@
 {
-	"name": "You Tempo",
-	"short_name": "You Tempo",
-	"description": "Отследить скорость обработки посылок во время смены",
-	"display": "standalone",
-	"orientation": "portrait-primary",
-	"scope": "/Team_Lift_speed_tracker/",
-	"start_url": "/Team_Lift_speed_tracker/",
-	"background_color": "#000000",
-	"theme_color": "#000000",
-	"categories": ["productivity", "utilities"],
-	"screenshots": [
-		{
-			"src": "/Team_Lift_speed_tracker/web-app-manifest-192x192.png",
-			"sizes": "192x192",
-			"type": "image/png"
-		},
-		{
-			"src": "/Team_Lift_speed_tracker/web-app-manifest-512x512.png",
-			"sizes": "512x512",
-			"type": "image/png"
-		}
-	],
-	"icons": [
-		{
-			"src": "/Team_Lift_speed_tracker/favicon.ico",
-			"sizes": "64x64",
-			"type": "image/x-icon"
-		},
-		{
-			"src": "/Team_Lift_speed_tracker/web-app-manifest-192x192.png",
-			"sizes": "192x192",
-			"type": "image/png"
-		},
-		{
-			"src": "/Team_Lift_speed_tracker/web-app-manifest-512x512.png",
-			"sizes": "512x512",
-			"type": "image/png"
-		}
-	]
+  "name": "MyWebSite",
+  "short_name": "MySite",
+  "icons": [
+    {
+      "src": "/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
+  "display": "standalone"
 }
