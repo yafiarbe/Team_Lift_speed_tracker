@@ -495,15 +495,26 @@ const getTimeRemaining = (shift: Shift): string => {
 	endDate.setHours(endH, endM, 0, 0);
 
 	if (shift === SHIFTS.value.night) {
-		if (currentHours < 4 || (currentHours === 4 && currentMinutes === 0)) {
-			endDate.setHours(4, 0, 0, 0);
-		} else if (currentHours >= 17 && currentMinutes >= 30) {
-			endDate.setDate(endDate.getDate() + 1);
-			endDate.setHours(4, 0, 0, 0);
+		// Ночная смена: 17:30 до 04:00 (следующего дня)
+		const startMinutes = 17 * 60 + 30;
+		const endMinutes = 4 * 60; // 04:00
+		const nowMinutes = currentHours * 60 + currentMinutes;
+
+		// Если сейчас после 17:30 (например, 18:00, 23:00, 02:00, 03:59)
+		if (nowMinutes >= startMinutes || nowMinutes < endMinutes) {
+			// Если после полуночи, дата окончания — завтра
+			if (nowMinutes < endMinutes) {
+				endDate.setDate(endDate.getDate());
+				endDate.setHours(4, 0, 0, 0);
+			} else {
+				endDate.setDate(endDate.getDate() + 1);
+				endDate.setHours(4, 0, 0, 0);
+			}
 		} else {
 			return "Вне смены";
 		}
 	} else {
+		// Дневная смена: 06:00 до 16:30
 		if (currentHours < 6 || currentHours > 16 || (currentHours === 16 && currentMinutes > 30)) {
 			return "Вне смены";
 		}
