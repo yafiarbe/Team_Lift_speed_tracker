@@ -1,6 +1,6 @@
 {
-	"name": "You Tempo",
-	"short_name": "You Tempo",
+	"name": "Your Tempo",
+	"short_name": "Your Tempo",
 	"description": "Track parcel processing speed during shift",
 	"display": "standalone",
 	"orientation": "portrait-primary",
