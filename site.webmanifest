@@ -6,8 +6,8 @@
 	"orientation": "portrait-primary",
 	"scope": "/Team_Lift_speed_tracker/",
 	"start_url": "/Team_Lift_speed_tracker/",
-	"background_color": "#000000",
-	"theme_color": "#000000",
+	"background_color": "#071837",
+	"theme_color": "#071837",
 	"categories": ["productivity", "utilities"],
 	"screenshots": [
 		{
